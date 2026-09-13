@@ -75,7 +75,7 @@ jobs:
             echo "${{ secrets.GIT_DOCKER_TOKEN }}" | docker login ghcr.io \
               -u "${{ secrets.GIT_DOCKER_USER }}" \
               --password-stdin
-
+            mkdir -p "${{ env.APP_NAME }}"
             cd "${{ env.APP_NAME }}"
 
             # Create production .env on server
