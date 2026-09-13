@@ -1,0 +1,94 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: ["master"]
+
+env:
+  APP_NAME: "pipline"
+  IMAGE_NAME: "ghcr.io/${{ secrets.GIT_DOCKER_USER }}/pipline"
+
+jobs:
+
+  # ========================================
+  # Build & Push
+  # ========================================
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GIT_DOCKER_USER }}
+          password: ${{ secrets.GIT_DOCKER_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:latest
+
+          secrets: |
+            production_env=${{ secrets.PRODUCTION_ENV }}
+
+
+  # ========================================
+  # Deploy
+  # ========================================
+  deploy:
+    needs: ["build-and-push"]
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update docker-compose image
+        run: |
+          sed -i 's|IMAGE_NAME|${{ env.IMAGE_NAME }}|g' docker-compose.yml
+
+      - name: Deploy to server
+        uses: easingthemes/ssh-deploy@v5.1.0
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_KEY }}
+          REMOTE_HOST: ${{ secrets.SERVER_IP }}
+          REMOTE_USER: ${{ secrets.SERVER_USER }}
+          REMOTE_PORT: ${{ secrets.SERVER_PORT }}
+
+          SOURCE: ./docker-compose.yml
+          TARGET: "./${{ env.APP_NAME }}/."
+
+          SCRIPT_AFTER_REQUIRED: true
+
+          SCRIPT_AFTER: |
+            set -euo pipefail
+
+            echo "${{ secrets.GIT_DOCKER_TOKEN }}" | docker login ghcr.io \
+              -u "${{ secrets.GIT_DOCKER_USER }}" \
+              --password-stdin
+
+            cd "${{ env.APP_NAME }}"
+
+            # Create production .env on server
+            cat > .env <<'EOF'
+            ${{ secrets.PRODUCTION_ENV }}
+            EOF
+
+            # Pull latest image
+            docker compose pull
+
+            # Restart application
+            docker compose down
+
+            docker compose up -d
+
+            docker logout ghcr.io
