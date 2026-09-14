@@ -64,7 +64,7 @@ export default function Home() {
           </a>
         </div>
       </main> */}
-      Hello world35
+      pipline test
     </div>
   );
 }
