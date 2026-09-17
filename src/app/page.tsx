@@ -64,7 +64,7 @@ export default function Home() {
           </a>
         </div>
       </main> */}
-      pipline test
+      pipline test 
     </div>
   );
 }
