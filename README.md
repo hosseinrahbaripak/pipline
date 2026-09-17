@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# توضیح GitHub Actions Secrets
 
-## Getting Started
+در این پروژه از **GitHub Actions Secrets** برای نگهداری امن اطلاعات
+موردنیاز در فرایند CI/CD استفاده می‌شود. این مقادیر در Workflowها قابل
+استفاده‌اند، بدون اینکه اطلاعات حساس مستقیماً داخل کد قرار بگیرند.
 
-First, run the development server:
+  -----------------------------------------------------------------------
+  نام Secret                          توضیح
+  ----------------------------------- -----------------------------------
+  `GIT_DOCKER_TOKEN`                  توکن دسترسی برای احراز هویت هنگام
+                                      اتصال به رجیستری کانتینر (مانند
+                                      GitHub Container Registry یا GHCR)
+                                      و ارسال/دریافت ایمیج Docker.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+  `GIT_DOCKER_USER`                   نام کاربری حسابی که برای ورود به
+                                      رجیستری کانتینر استفاده می‌شود.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+  `PRODUCTION_ENV`                    محتوای فایل `.env` پروژه برای محیط
+                                      Production که به‌صورت GitHub Secret
+                                      ذخیره شده و هنگام استقرار برای
+                                      تنظیم متغیرهای محیطی برنامه استفاده
+                                      می‌شود.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+  `SERVER_IP`                         آدرس IP سروری که برنامه روی آن
+                                      مستقر می‌شود.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+  `SERVER_KEY`                        کلید خصوصی SSH برای اتصال امن به
+                                      سرور و اجرای مراحل Deploy.
 
-## Learn More
+  `SERVER_USER`                       نام کاربری سیستم‌عامل روی سرور که
+                                      اتصال SSH و عملیات استقرار با آن
+                                      انجام می‌شود.
+  -----------------------------------------------------------------------
 
-To learn more about Next.js, take a look at the following resources:
+## نکات امنیتی
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+-   مقدار Secretها را در کد، README یا لاگ‌های Workflow قرار ندهید؛ فقط
+    نام و کاربردشان را مستند کنید.
+-   کلید خصوصی SSH و توکن رجیستری باید محرمانه بمانند و دسترسی به آن‌ها
+    محدود باشند.
+-   دسترسی‌های توکن و کاربر سرور را به حداقل سطح لازم محدود کنید.
+-   از چاپ کردن محتوای `PRODUCTION_ENV` در لاگ‌های Workflow خودداری کنید.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> این مستند فقط کاربرد متغیرها را توضیح می‌دهد؛ مقدار واقعی آن‌ها باید در
+> بخش **Settings → Secrets and variables → Actions** مخزن GitHub تنظیم
+> شود.
